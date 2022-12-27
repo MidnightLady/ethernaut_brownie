@@ -19,10 +19,6 @@ contract Atk_Force {
         target = addr;
     }
 
-    function set_target(address addr) public {
-        target = addr;
-    }
-
     function send() public {
         selfdestruct(payable(target));
     }
