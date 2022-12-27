@@ -1,0 +1,57 @@
+# change the build directory to be within react's scope
+project_structure:
+    build: build
+    contracts: contracts
+    interfaces: interfaces
+    reports: reports
+    scripts: scripts
+    tests: tests
+
+
+# automatically fetch contract sources from Etherscan
+autofetch_sources: True
+dotenv: .env
+
+# enable output of development artifacts to load with react
+dev_deployment_artifacts: true
+
+networks:
+    default: development
+    development:
+        default_contract_owner: true
+        cmd_settings:
+            #evm_version: muirGlacier
+            #mnemonic: brownie
+            #port: 7545
+            #chain_id: 1337
+            default_balance: 100
+            #unlock:
+            #  - 0x833514593c7798551A20Ac69f98D486e2A12dFe8 # optionally add saved brownie account to Ganache
+            # (requires explicit transfer of eth to accounts[-1])
+            accounts: 5
+
+
+    #    update_interval: 60
+    #    verify: False
+#    goerli:
+#        gas_limit: max
+#        gas_buffer: 1.1
+#        gas_price: auto
+    #    unlock:
+    #      - 0x833514593c7798551A20Ac69f98D486e2A12dFe8 # optionally add saved brownie account to Ganache
+    kovan:
+        verify: False
+        update_interval: 60
+
+
+wallets:
+    from_key: ${PRIVATE_KEY}
+
+
+dependencies:
+    - OpenZeppelin/openzeppelin-contracts@4.8.0
+
+compiler:
+    solc:
+        remappings:
+            - '@openzeppelin4.8.0=OpenZeppelin/openzeppelin-contracts@4.8.0'
