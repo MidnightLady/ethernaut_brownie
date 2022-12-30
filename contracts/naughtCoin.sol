@@ -48,7 +48,7 @@ contract Atk_Naughtcoin {
     }
 
     function withdraw() public {
-        uint allowance = target.allowance(owner,address(this));
+        uint allowance = target.allowance(owner, address(this));
         target.transferFrom(owner, address(this), allowance);
     }
 

