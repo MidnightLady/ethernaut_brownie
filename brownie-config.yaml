@@ -17,14 +17,17 @@ dev_deployment_artifacts: true
 
 networks:
     default: development
+
     development:
         default_contract_owner: true
+        gas_price: auto
         cmd_settings:
             #evm_version: muirGlacier
             #mnemonic: brownie
             #port: 7545
             #chain_id: 1337
             default_balance: 100
+
             #unlock:
             #  - 0x833514593c7798551A20Ac69f98D486e2A12dFe8 # optionally add saved brownie account to Ganache
             # (requires explicit transfer of eth to accounts[-1])

