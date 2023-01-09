@@ -3,7 +3,7 @@ pragma solidity ^0.5.0;
 
 import '../interfaces/Ownable-05.sol';
 
-contract AlienCodex is Ownable {
+contract AlienCodex is Ownable5 {
 
   bool public contact;
   bytes32[] public codex;

